@@ -14,7 +14,8 @@ to DB over a connection that is not very reliable
 (a router/hotspot in another room).
 
 This program starts 2000 concurrent connections that runs `select @Id as Id`
-statement.
+statement. This can be executed on any MSSQL instance and does not even require
+a database.
 
 Example output with reproduced issue (`<...>` = skipped rows):
 
@@ -80,6 +81,6 @@ transaction attached to the connection. In original project
 the issue was observed even if there was no transaction
 attached to command (but it was more rare).
 
-However, I failed to observe this issue using this project,
-maybe because the SQL does not query any table, and therefore
-is way faster.
+However, I failed to reproduce this issue with a simple `select @Id as Id`
+without a transaction. Therefore the code in this project executes the 
+queries under a transaction.
