@@ -1,23 +1,23 @@
 # MARS + Dapper + MSSQL wrong results test case
 
-Query may wrong results under high load, with enabled MARS, Non-Windows clients.
-
-- MSSQL database
-- `MultipleActiveResultSets=True` (MARS) is in the connection string
-- Client is not running on Windows (can be MacOS or Linux)
-- Using `Dapper` (maybe issue is somehow exacerbated by something the Dapper does)
-- High load that saturates the connection pool and causes timeouts.
-
-The issue is hard to reproduce, and may require multiple runs of this program
-to observe. One way to increase the chances of it occuring is to connect
-to DB over a connection that is not very reliable 
-(a router/hotspot in another room).
+Sometimes the dapper query may return wrong results under high load, 
+with enabled MARS, on Non-Windows clients.
 
 This program starts 2000 concurrent connections that runs `select @Id as Id`
 statement. This can be executed on any MSSQL instance and does not even require
 a database.
 
-Example output with reproduced issue (`<...>` = skipped rows):
+- MSSQL instance
+- `MultipleActiveResultSets=True` (MARS) is in the connection string
+- Client is not running on Windows (can be MacOS or Linux)
+- Using `Dapper` (maybe issue is somehow exacerbated by something the Dapper does)
+- High load that saturates the connection pool and causes timeouts.
+
+The issue is hard to reproduce, and may require multiple runs
+to observe. One way to increase the likelihood of it occuring is to use
+connection that is not very reliable (a router/hotspot in another room).
+
+Example output (`<...>` = skipped rows):
 
 ```
 <...>
@@ -48,7 +48,7 @@ The issue rare, but unacceptable. The workaround is to ensure that
 ## OS
 
 - Failed to observe issue on Windows
-- Issue observed on MacOS, Docker/Linux and Docker/WSL.
+- Issue was observed on MacOS, Docker/Linux and Docker/WSL.
 
 ## MSSQL Server
 
@@ -77,9 +77,9 @@ Failed to observe the issue when queried without `Dapper`.
 ## Transaction
 
 Looks like issue is way more likely to occur if there is a
-transaction attached to the connection. In original project
+transaction attached to the connection. In the original project
 the issue was observed even if there was no transaction
-attached to command (but it was more rare).
+attached to the command.
 
 However, I failed to reproduce this issue with a simple `select @Id as Id`
 without a transaction. Therefore the code in this project executes the 
