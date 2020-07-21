@@ -1,5 +1,24 @@
 # MARS + Dapper + MSSQL wrong results test case
 
+## How this was found
+
+We have noticed the system that queries users from the database
+starting to return users with a different id than was used to query them.
+We were very lucky that there was a sanity check that checks the id and throws
+an exception. Otherwise this would have caused way more problems than it did.
+
+## How did this happen
+
+Originally the system was written way before the .NET Core was a thing and
+was running on windows.
+
+The connection string containing this flag was copy-pasted when a part of the
+system was re-written in .NET Core / Docker.
+
+The issue was noticed when the load has increased enough at the peak hours.
+
+## What is the issue
+
 Sometimes the dapper query may return wrong results under high load, 
 with enabled MARS, on Non-Windows clients.
 
@@ -44,6 +63,8 @@ Exceptions: 1693
 
 The issue rare, but unacceptable. The workaround is to ensure that
 `MultipleActiveResultSets` is not set.
+
+More information is at the end of this README.
 
 ## OS
 

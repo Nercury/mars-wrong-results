@@ -171,7 +171,7 @@ namespace MarsDapperWrongResults
                     else
                     {
                         var commandDef = new CommandDefinition(
-                            @"select @Id as Id",
+                            sql,
                             new {Id = index},
                             transaction: tx,
                             1
