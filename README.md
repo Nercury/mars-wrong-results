@@ -1,9 +1,18 @@
-# MARS + Dapper + MSSQL wrong results test case
+# MARS + MSSQL wrong results test case
+
+Sometimes the query may return wrong results under high load, 
+with enabled MARS, on Non-Windows clients.
+
+This program starts 2000 concurrent connections that runs `select @Id as Id`
+statement. Each `Id` is different, and the query result should always return 
+the id that was queried, yet under certain circumstances that's not the case. 
+This can be executed on any MSSQL instance and does not even require
+a database.
 
 ## How this was found
 
 We have noticed the system that queries users from the database
-starting to return users with a different id than was used to query them.
+started to return users with a different id than was used to query them.
 We were very lucky that there was a sanity check that checks the id and throws
 an exception. Otherwise this would have caused way more problems than it did.
 
@@ -17,19 +26,12 @@ system was re-written in .NET Core / Docker.
 
 The issue was noticed when the load has increased enough at the peak hours.
 
-## What was the issue
-
-Sometimes the dapper query may return wrong results under high load, 
-with enabled MARS, on Non-Windows clients.
-
-This program starts 2000 concurrent connections that runs `select @Id as Id`
-statement. This can be executed on any MSSQL instance and does not even require
-a database.
+## Requirements to reproduce
 
 - MSSQL instance
 - `MultipleActiveResultSets=True` (MARS) is in the connection string
-- Client is not running on Windows (can be MacOS or Linux)
-- Using `Dapper` (maybe issue is somehow exacerbated by something the Dapper does)
+- Client is not running on Windows (reproduced on MacOS or Linux)
+- Query uses async reader methods
 - High load that saturates the connection pool and causes timeouts.
 
 The issue is hard to reproduce, and may require multiple runs
@@ -64,8 +66,6 @@ Exceptions: 1693
 The issue rare, but unacceptable. The workaround is to ensure that
 `MultipleActiveResultSets` is not set.
 
-More information is at the end of this README.
-
 ## OS
 
 - Failed to observe issue on Windows
@@ -89,11 +89,13 @@ Issue occurs only when `MultipleActiveResultSets` is enabled.
 ## Dependency versions
 
 - System.Data.SqlClient `4.8.1`
-- Dapper `2.0.35`
 
-Issue originally found on way earlier SqlClient/Dapper version,
+Issue originally found on way earlier SqlClient version,
 so this is probably not a regression.
-Failed to observe the issue when queried without `Dapper`.
+
+## Async/await
+
+Failed to observe the issue when using sync reader.
 
 ## Transaction
 

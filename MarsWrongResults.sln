@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarsDapperWrongResults", "MarsDapperWrongResults.csproj", "{855C87C4-6053-41F5-BC8A-A77F7DEA2A26}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarsWrongResults", "MarsWrongResults.csproj", "{855C87C4-6053-41F5-BC8A-A77F7DEA2A26}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

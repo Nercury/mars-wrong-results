@@ -5,9 +5,8 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Dapper;
 
-namespace MarsDapperWrongResults
+namespace MarsWrongResults
 {
     class Program
     {
@@ -132,8 +131,6 @@ namespace MarsDapperWrongResults
         /// </summary>
         private static async Task<QueryResult> QueryAndVerify(int index, string connectionString)
         {
-            var noDapper = false; // flip this flag to run without dapper
-            
             try
             {
                 using (var cn = new SqlConnection(connectionString))
@@ -142,52 +139,29 @@ namespace MarsDapperWrongResults
                     var tx = cn.BeginTransaction(IsolationLevel.ReadCommitted);
                     var sql = @"select @Id as Id";
                     
-                    if (noDapper)
+                    var command = new SqlCommand(sql, cn, tx);
+                    command.Transaction = tx;
+                    command.CommandTimeout = 1;
+                    command.Parameters.AddWithValue("Id", index);
+                    
+                    var result = -1;
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
-                        var command = new SqlCommand(sql, cn, tx);
-                        command.Transaction = tx;
-                        command.CommandTimeout = 1;
-                        command.Parameters.AddWithValue("Id", index);
-                        
-                        var result = -1;
-                        using (var reader = command.ExecuteReader())
+                        while (await reader.ReadAsync().ConfigureAwait(false))
                         {
-                            while (reader.Read())
-                            {
-                                var columnIndex = reader.GetOrdinal("Id");
-                                result = reader.GetInt32(columnIndex);
-                                break;
-                            }
+                            var columnIndex = reader.GetOrdinal("Id");
+                            result = reader.GetInt32(columnIndex);
+                            break;
                         }
-                        
-                        tx.Commit();
-
-                        return new QueryResult
-                        {
-                            Success = result == index,
-                            Index = index,
-                        };
                     }
-                    else
+                    
+                    await tx.CommitAsync().ConfigureAwait(false);
+
+                    return new QueryResult
                     {
-                        var commandDef = new CommandDefinition(
-                            sql,
-                            new {Id = index},
-                            transaction: tx,
-                            1
-                        );
-
-                        var row = (await cn.QueryAsync<Row>(commandDef))
-                            .FirstOrDefault();
-
-                        tx.Commit();
-
-                        return new QueryResult
-                        {
-                            Success = row?.Id == index,
-                            Index = index,
-                        };
-                    }
+                        Success = result == index,
+                        Index = index,
+                    };
                 }
             }
             catch (Exception e)
@@ -199,11 +173,6 @@ namespace MarsDapperWrongResults
                     Index = index,
                 };
             }
-        }
-        
-        private class Row
-        {
-            public int Id { get; set; }
         }
         
         private class QueryResult
