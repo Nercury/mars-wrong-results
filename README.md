@@ -17,7 +17,7 @@ system was re-written in .NET Core / Docker.
 
 The issue was noticed when the load has increased enough at the peak hours.
 
-## What is the issue
+## What was the issue
 
 Sometimes the dapper query may return wrong results under high load, 
 with enabled MARS, on Non-Windows clients.
