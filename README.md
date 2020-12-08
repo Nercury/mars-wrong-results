@@ -1,3 +1,6 @@
+Update: the issue can be reproduced without MARS, albeit it is more rare.
+Use this project to simulate network latency: https://github.com/trainline/SqlClient659
+
 # MARS + MSSQL wrong results test case
 
 Sometimes the query may return wrong results under high load, 
